@@ -17,21 +17,26 @@ Proyecto de prueba para implementar Apple Pay.
   npm run dev
 ```
 
-## Notas
-Para recibir notificaciones de pago, se debe configurar un endpoint en el servidor que maneje las notificaciones de Apple Pay. Este endpoint debe ser capaz de recibir y procesar los datos del pago.
-remplazar `https://example.com/notify` por la URL del servidor.
+ 
+## Notas:
+Esta es la parte del código que se encarga de la validación del merchant.
+
+Más información en:
+- [documentación oficial](https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant).
+- [ejemplo de Apple](https://applepaydemo.apple.com/apple-pay-js-api#requirements).
+
 ```js
-   // Configurar el request para Apple Pay
-            const paymentRequest = {
-                countryCode: 'MX',
-                currencyCode: 'MXN',
-                supportedNetworks: ['visa', 'masterCard', 'amex'],
-                merchantCapabilities: ['supports3DS'],
-                total: {
-                    label: 'DEUNA Payment',
-                    amount: amount
-                },
-                tokenNotificationURL: "https://example.com/notify", // URL de nuestro server para recibir notificaciones de pago
+ // Evento: validación del merchant
+            session.onvalidatemerchant = (event) => {
+                console.log('Validation URL:', event.validationURL);
+                //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
+                // NOTA: Esto NO funcionará en producción, solo para simular el flujo
+                setTimeout(() => {
+                    try {
+                        session.completeMerchantValidation({});
+                    } catch (e) {
+                        console.error('Error en merchant validation:', e);
+                    }
+                }, 1000);
             };
 ```
-

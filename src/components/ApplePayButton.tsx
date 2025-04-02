@@ -1,4 +1,5 @@
 import   { useState, useEffect } from 'react';
+//more info: https://applepaydemo.apple.com/apple-pay-js-api#requirements
 
 const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.io.deuna.pay' }) => {
     const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
@@ -23,7 +24,6 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
                     label: 'DEUNA Payment',
                     amount: amount
                 },
-                tokenNotificationURL: "https://example.com/notify", // URL de nuestro server para recibir notificaciones de pago
             };
 
             // Crear sesión de Apple Pay
@@ -32,7 +32,7 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
             // Evento: validación del merchant
             session.onvalidatemerchant = (event) => {
                 console.log('Validation URL:', event.validationURL);
-
+                //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
                 // NOTA: Esto NO funcionará en producción, solo para simular el flujo
                 setTimeout(() => {
                     try {
