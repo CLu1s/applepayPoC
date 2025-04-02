@@ -4,7 +4,8 @@ Proyecto de prueba para implementar Apple Pay.
 
 ## Requisitos
 - Node.js ^20
-- Safari en MacOS 10.13 o superior
+- Safari 11 en MacOS 10.13 o superior
+- Tener una tarjeta de pago en el Wallet de Apple Pay
 
 ## Instalación
 ```bash
