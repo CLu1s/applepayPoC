@@ -1,5 +1,4 @@
 import express, {   Router } from 'express';
-const router = Router();
 import bodyParser from 'body-parser';
 // const cors = require('cors');
 const app = express();

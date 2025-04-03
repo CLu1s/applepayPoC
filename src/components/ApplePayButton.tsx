@@ -1,24 +1,26 @@
 import   { useState, useEffect } from 'react';
 //more info: https://applepaydemo.apple.com/apple-pay-js-api#requirements
 
-const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.io.deuna.pay' }) => {
+const ApplePayButton = ({ amount = '10.00',  }) => {
     const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
-    const [paymentResult, setPaymentResult] = useState(null);
-
+    const [paymentResult, setPaymentResult] = useState<Record<string, string>|null>(null);
+    // @ts-expect-error any
+    const ApplePaySession = (window as any).ApplePaySession as typeof globalThis.ApplePaySession;
     useEffect(() => {
+        const merchantIdentifier = 'merchant.test.io.deuna.pay'
         // Verificar si Apple Pay está disponible
-        if (window.ApplePaySession && ApplePaySession.canMakePayments()) {
-            setIsApplePayAvailable(true);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (window.ApplePaySession) {
-            ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function(canMakePayments) {
+        if (typeof window !== 'undefined' && 'ApplePaySession' in window) {
+            const AppleSession = (window as any).ApplePaySession;
+            if (AppleSession.canMakePayments()) {
+                setIsApplePayAvailable(true);
+            }
+            // @ts-expect-error any
+            AppleSession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function(canMakePayments) {
                 console.log("Can make payments:", canMakePayments);
             });
         }
-    }, [merchantIdentifier]);
+    }, []);
+
 
     const handleApplePayButtonClick = () => {
         try {
@@ -38,6 +40,7 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
             const session = new ApplePaySession(6, paymentRequest);
 
             // Evento: validación del merchant
+            // @ts-expect-error any
             session.onvalidatemerchant = async (event) => {
                 console.log('Validation URL:', event.validationURL);
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
@@ -64,7 +67,7 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
             };
 
             // Evento: pago autorizado
-            session.onpaymentauthorized = (event) => {
+            session.onpaymentauthorized = (event:any) => {
                 console.log('Pago autorizado:', event);
                 const result = {
                     "status": ApplePaySession.STATUS_SUCCESS
@@ -90,7 +93,7 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
             };
 
             // Evento: cancelación
-            session.oncancel = (event) => {
+            session.oncancel = (event:Record<string, string>) => {
                 console.log('Apple Pay sesión cancelada', event);
             };
 
@@ -110,9 +113,10 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
         <div className="apple-pay-container">
 
 
-                <apple-pay-button buttonstyle="black" type="pay" locale="es-MXN"
-                                  onclick={handleApplePayButtonClick}
-                                  style={{
+            <button
+                onClick={handleApplePayButtonClick}
+                className="apple-pay-button"
+                style={{
                     backgroundColor: 'black',
                     color: 'white',
                     padding: '10px 20px',
@@ -120,8 +124,9 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
                     border: 'none',
                     cursor: 'pointer'
                 }}
-
-                ></apple-pay-button>
+            >
+                Pagar con Apple Pay
+            </button>
 
 
             {paymentResult && (
