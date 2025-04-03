@@ -12,5 +12,12 @@ export default defineConfig({
       cert: fs.readFileSync(path.resolve(__dirname, './certificates/cert.pem')),
     },
     host: 'localhost',
+    proxy: {
+      '/api': {
+        target: 'http://localhost:9000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 })

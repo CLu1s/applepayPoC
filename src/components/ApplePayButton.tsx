@@ -12,6 +12,14 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
         }
     }, []);
 
+    useEffect(() => {
+        if (window.ApplePaySession) {
+            ApplePaySession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function(canMakePayments) {
+                console.log("Can make payments:", canMakePayments);
+            });
+        }
+    }, [merchantIdentifier]);
+
     const handleApplePayButtonClick = () => {
         try {
             // Configurar el request para Apple Pay
@@ -30,23 +38,37 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
             const session = new ApplePaySession(6, paymentRequest);
 
             // Evento: validación del merchant
-            session.onvalidatemerchant = (event) => {
+            session.onvalidatemerchant = async (event) => {
                 console.log('Validation URL:', event.validationURL);
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
-                // NOTA: Esto NO funcionará en producción, solo para simular el flujo
-                setTimeout(() => {
-                    try {
-                        session.completeMerchantValidation({});
-                    } catch (e) {
-                        console.error('Error en merchant validation:', e);
+                try {
+                    // Llamar al endpoint local
+                    const response = await fetch('/api/validate-apple-pay-merchant', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ validationURL: event.validationURL })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error validando: ${response.status}`);
                     }
-                }, 1000);
+
+                    const merchantSession = await response.json();
+                    console.log('Merchant session recibida:', merchantSession);
+                    // Completar la validación
+                    session.completeMerchantValidation(merchantSession);
+                } catch (error) {
+                    console.error('Error validando merchant:', error);
+                    session.abort();
+                }
             };
 
             // Evento: pago autorizado
             session.onpaymentauthorized = (event) => {
                 console.log('Pago autorizado:', event);
-
+                const result = {
+                    "status": ApplePaySession.STATUS_SUCCESS
+                };
                 // Capturar los datos completos del pago
                 const paymentData = {
                     token: event.payment.token,
@@ -64,7 +86,7 @@ const ApplePayButton = ({ amount = '10.00', merchantIdentifier = 'merchant.test.
                 console.log('Transaction ID:', event.payment.token.transactionIdentifier);
 
                 // Completar el pago como exitoso para el PoC
-                session.completePayment(ApplePaySession.STATUS_SUCCESS);
+                session.completePayment(result);
             };
 
             // Evento: cancelación
