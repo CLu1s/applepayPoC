@@ -1,7 +1,7 @@
 import   { useState, useEffect } from 'react';
 //more info: https://applepaydemo.apple.com/apple-pay-js-api#requirements
 
-const ApplePayButton = ({ amount = '10.00',  }) => {
+const ApplePayButton = ({ amount = '1.00',  }) => {
     const [isApplePayAvailable, setIsApplePayAvailable] = useState(false);
     const [paymentResult, setPaymentResult] = useState<Record<string, string>|null>(null);
     // @ts-expect-error any
