@@ -7,7 +7,7 @@ function App() {
     <>
 
       <p className="read-the-docs">
-        Click to test Apple Pay
+        Click to test Apple Pay button
       </p>
         <ApplePayButton/>
     </>
