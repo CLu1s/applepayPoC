@@ -46,7 +46,7 @@ const ApplePayButton = ({ amount = '10.00',  }) => {
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
                 try {
                     // Llamar al endpoint local
-                    const response = await fetch('/api/validate-apple-pay-merchant', {
+                    const response = await fetch('https://showy-almond-panther.glitch.me/api/validate-apple-pay-merchant', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ validationURL: event.validationURL })
