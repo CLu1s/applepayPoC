@@ -57,9 +57,19 @@ const ApplePayButton = ({ amount = '10.00',  }) => {
                     }
 
                     const merchantSession = await response.json();
-                    console.log('Merchant session recibida:', merchantSession);
+                    const mockMerchantSession = {
+                        "merchantSessionIdentifier": "merchant_session_" + Math.random().toString(36).substring(2),
+                        "nonce": "nonce_" + Math.random().toString(36).substring(2),
+                        "merchantIdentifier": "merchant.com.deuna.payments", // Asegúrate que coincida con tu merchant ID
+                        "domainName": "localhost",
+                        "displayName": "DEUNA Payments",
+                        "initiative": "web",
+                        "initiativeContext": "https://localhost:5173", // URL exacta de tu sitio
+                        "epoch": Date.now() / 1000 | 0, // Timestamp en segundos (entero)
+                    };
+                    console.log('Merchant session recibida:', merchantSession,mockMerchantSession);
                     // Completar la validación
-                    session.completeMerchantValidation(merchantSession);
+                    session.completeMerchantValidation(mockMerchantSession);
                 } catch (error) {
                     console.error('Error validando merchant:', error);
                     session.abort();
