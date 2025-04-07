@@ -49,7 +49,7 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                     const response = await fetch('/wallet/credentials/b64ff3ea-7e09-465d-a18b-752e9eabc1fe/payment-session/apple_pay', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ validationURL: event.validationURL })
+                        body: JSON.stringify({ validation_url: event.validationURL })
                     });
 
                     if (!response.ok) {
