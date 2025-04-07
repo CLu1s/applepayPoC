@@ -46,30 +46,30 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
                 try {
                     // Llamar al endpoint local
-                    // const response = await fetch('https://decisive-silken-television.glitch.me/api/validate-apple-pay-merchant', {
-                    //     method: 'POST',
-                    //     headers: { 'Content-Type': 'application/json' },
-                    //     body: JSON.stringify({ validationURL: event.validationURL })
-                    // });
-                    //
-                    // if (!response.ok) {
-                    //     throw new Error(`Error validando: ${response.status}`);
-                    // }
-                    //
-                    // const merchantSession = await response.json();
-                    const mockMerchantSession = {
-                        "merchantSessionIdentifier": "merchant_session_" + Math.random().toString(36).substring(2),
-                        "nonce": "nonce_" + Math.random().toString(36).substring(2),
-                        "merchantIdentifier": "merchant.com.deuna.payments", // Asegúrate que coincida con tu merchant ID
-                        "domainName": "localhost",
-                        "displayName": "DEUNA Payments",
-                        "initiative": "web",
-                        "initiativeContext": "https://localhost:5173", // URL exacta de tu sitio
-                        "epoch": Date.now() / 1000 | 0, // Timestamp en segundos (entero)
-                    };
+                    const response = await fetch('/wallet/credentials/b64ff3ea-7e09-465d-a18b-752e9eabc1fe/payment-session/apple_pay', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ validationURL: event.validationURL })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error validando: ${response.status}`);
+                    }
+
+                    const merchantSession = await response.json();
+                    // const mockMerchantSession = {
+                    //     "merchantSessionIdentifier": "merchant_session_" + Math.random().toString(36).substring(2),
+                    //     "nonce": "nonce_" + Math.random().toString(36).substring(2),
+                    //     "merchantIdentifier": "merchant.com.deuna.payments", // Asegúrate que coincida con tu merchant ID
+                    //     "domainName": "localhost",
+                    //     "displayName": "DEUNA Payments",
+                    //     "initiative": "web",
+                    //     "initiativeContext": "https://localhost:5173", // URL exacta de tu sitio
+                    //     "epoch": Date.now() / 1000 | 0, // Timestamp en segundos (entero)
+                    // };
                     // console.log('Merchant session recibida:', merchantSession);
                     // Completar la validación
-                    session.completeMerchantValidation(mockMerchantSession);
+                    session.completeMerchantValidation(merchantSession);
                 } catch (error) {
                     console.error('Error validando merchant:', error);
                     session.abort();
