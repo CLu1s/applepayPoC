@@ -15,13 +15,15 @@ export default defineConfig({
     proxy: {
       // Proxy todas las peticiones que comiencen con /api
       '/wallet': {
-        target: 'http://api.dev.deuna.io',
+        target: 'https://api.dev.deuna.io',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/wallet/, '')
       },
       '/users': {
-        target: 'http://api.dev.deuna.io',
+        target: 'https://api.dev.deuna.io',
         changeOrigin: true,
+        secure: false,
         rewrite: (path) => path.replace(/^\/users/, '')
       }
     }
