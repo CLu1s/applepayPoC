@@ -47,7 +47,7 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
                 try {
                     // Llamar al endpoint local
-                    const response = await fetch('/wallet/credentials/c1e0fe58-4f03-4a65-ac97-5be93b263a4e/payment-session/', {
+                    const response = await fetch('/wallet/credentials/c1e0fe58-4f03-4a65-ac97-5be93b263a4e/payment-session', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
