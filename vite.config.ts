@@ -14,16 +14,15 @@ export default defineConfig({
     host: 'localhost',
     proxy: {
       // Proxy todas las peticiones que comiencen con /api
-      '/api': {
-        target: 'https://payment-2.dev.deuna.io',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      },
-      // También puedes configurar una ruta específica
       '/wallet': {
-        target: 'https://payment-2.dev.deuna.io/api/v1/wallet',
+        target: 'http://api.dev.deuna.io',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/wallet/, '')
+      },
+      '/users': {
+        target: 'http://api.dev.deuna.io',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/users/, '')
       }
     }
   }

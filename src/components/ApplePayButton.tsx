@@ -14,6 +14,7 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
             if (AppleSession.canMakePayments()) {
                 setIsApplePayAvailable(true);
             }
+
             // @ts-expect-error any
             AppleSession.canMakePaymentsWithActiveCard(merchantIdentifier).then(function(canMakePayments) {
                 console.log("Can make payments:", canMakePayments);
@@ -26,9 +27,9 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
         try {
             // Configurar el request para Apple Pay
             const paymentRequest = {
-                countryCode: 'MX',
-                currencyCode: 'MXN',
-                supportedNetworks: ['visa', 'masterCard', 'amex'],
+                countryCode: 'US',
+                currencyCode: 'USD',
+                supportedNetworks: ['visa', 'masterCard', 'amex', 'discover'],
                 merchantCapabilities: ['supports3DS'],
                 total: {
                     label: 'DEUNA Payment',
@@ -46,10 +47,14 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                 //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778021-onvalidatemerchant
                 try {
                     // Llamar al endpoint local
-                    const response = await fetch('/wallet/credentials/b64ff3ea-7e09-465d-a18b-752e9eabc1fe/payment-session/apple_pay', {
+                    const response = await fetch('/wallet/credentials/c1e0fe58-4f03-4a65-ac97-5be93b263a4e/payment-session', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ validation_url: event.validationURL })
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Merchant-id': '896e48e5-d8d9-4bb6-857b-85ed5455e15f',
+                            'X-Store-Code': 'all'
+                        },
+                        body: JSON.stringify({ validation_url: event.validationURL, domain: "main.d15age3ucwnxjs.amplifyapp.com" })
                     });
 
                     if (!response.ok) {
@@ -57,18 +62,6 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                     }
 
                     const merchantSession = await response.json();
-                    // const mockMerchantSession = {
-                    //     "merchantSessionIdentifier": "merchant_session_" + Math.random().toString(36).substring(2),
-                    //     "nonce": "nonce_" + Math.random().toString(36).substring(2),
-                    //     "merchantIdentifier": "merchant.com.deuna.payments", // Asegúrate que coincida con tu merchant ID
-                    //     "domainName": "localhost",
-                    //     "displayName": "DEUNA Payments",
-                    //     "initiative": "web",
-                    //     "initiativeContext": "https://localhost:5173", // URL exacta de tu sitio
-                    //     "epoch": Date.now() / 1000 | 0, // Timestamp en segundos (entero)
-                    // };
-                    // console.log('Merchant session recibida:', merchantSession);
-                    // Completar la validación
                     session.completeMerchantValidation(merchantSession);
                 } catch (error) {
                     console.error('Error validando merchant:', error);
@@ -77,7 +70,7 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
             };
 
             // Evento: pago autorizado
-            session.onpaymentauthorized = (event:any) => {
+            session.onpaymentauthorized = async (event:any) => {
                 console.log('Pago autorizado:', event);
                 const result = {
                     "status": ApplePaySession.STATUS_SUCCESS
@@ -93,13 +86,33 @@ const ApplePayButton = ({ amount = '1.00',  }) => {
                 setPaymentResult(paymentData);
 
                 // IMPORTANTE: Estos son los datos que necesita el backend
-                console.log('--- DATOS PARA BACKEND ---');
-                console.log('Payment Data (criptograma):', event.payment.token.paymentData);
-                console.log('Payment Method:', event.payment.token.paymentMethod);
-                console.log('Transaction ID:', event.payment.token.transactionIdentifier);
+                try {
+                    // Llamar al endpoint local
+                    let createCardPayload = {
+                        credential_source: "apple_pay",
+                        apple_pay: event.payment
+                    }
+                    const responsePayment = await fetch('/users/a35851b1-b60b-419c-98c9-ef54e5625ae7/cards', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlZOUDlOVGM2SWdxVDhhYVRqYlFnOTRPa2wzZHgtLWZfQjdNdXdTNmYzdmMiLCJ0eXAiOiJKV1QifQ.eyJhY3QiOiJyZWFkIiwiYXVkIjpbIjg5NmU0OGU1LWQ4ZDktNGJiNi04NTdiLTg1ZWQ1NDU1ZTE1ZiJdLCJleHAiOjE3NzYwMjA4ODAsImV4dGVybmFsIjp0cnVlLCJpYXQiOjE3NzU3NjE2ODAsImlzcyI6Ijg5NmU0OGU1LWQ4ZDktNGJiNi04NTdiLTg1ZWQ1NDU1ZTE1ZiIsIm5ldHdvcmtfaWQiOiI2ZmU5NWI5My0wMDg3LTQxMzctYmI3Ni03ZjM5OWYwNjgxMmYiLCJzdWIiOiJhMzU4NTFiMS1iNjBiLTQxOWMtOThjOS1lZjU0ZTU2MjVhZTciLCJ1c2VyX3JvbGUiOiJleHRlcm5hbCJ9.YK0SlvFpzJBO5ih4ekK8gGWEcBwi54G3yVVtsbhoOWEx36w-c1TvK0v0Ocs-kYMk3Co2-MbiBfyH76-HfDoaDMqy6V8RJXCyRExDkjytwD4Oowk8wjM1dVbqmI3DkaEKHPVdkrIvHXBTBIS9_ogFrEEqP_UURY0OrWRNEFVFu5SHjWv7YxPYd9nvUe1CuvHZIeQ4v6wa6241J2MNgjgFZ7pdUk5K8m7a4-2hlgosrZES5I8ZhHb7aU1tCxLgTriAk8MdtM_b6VAziyZ8DSaXgqFsCjlJVIBoOejVrYx3XlUpmGzdydIi4hrBWeVWuohxW4PaS2RTLz3qOuFL4oJpXG2aB_acHwF9QQ1nCtlMwxBzLe9yV1qSM3ek8HNylXRz4DOt9R7kY0DU_CTp75XhNBKliA-56bFiHRPZaeup2hWcPEF8oMkjvmyzoK9culIVBNTjdj2qASMHt4hIJ3t1s7jjrz54IWrBuNu9y1RTv75P_CNhnLFMRkjGaEsk2z21DokVVegULpkGHP1o_AnAGPk373LaMYpNrgFuj6JVtWUmwAYcl5FsA_atc8uA9i5TBDm_p_Ww1CjTzes8d_RmG9xCjWAd_fEU1ZOUdkPyKae4yoAOWlzewBlKowFKRHKtjRwEDWmkXkcMNRFjk8j9OKDmws8MBnb7hdBzXCfg4pg' },
+                        body: JSON.stringify(createCardPayload)
+                    });
 
-                // Completar el pago como exitoso para el PoC
-                session.completePayment(result);
+                    if (!responsePayment.ok) {
+                        throw new Error(`Error validando: ${responsePayment.status}`);
+                    }
+
+                    const paymentResult = await responsePayment.json();
+
+                    console.log("decrypted_data:", paymentResult);
+                    // Completar el pago como exitoso para el PoC
+                    session.completePayment(result);
+                } catch (error) {
+                    console.error('Error validando merchant:', error);
+                    session.abort();
+                }
+
+                
             };
 
             // Evento: cancelación
